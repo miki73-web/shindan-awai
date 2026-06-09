@@ -353,6 +353,50 @@
       flex-shrink: 0;
     }
 
+    /* CTAブロック */
+    .cta-block {
+      margin-top: 32px;
+      padding: 28px 24px;
+      background: linear-gradient(135deg, #f5f0e8, #eef4ec);
+      border-radius: 16px;
+      text-align: center;
+    }
+    .cta-block .cta-eyebrow {
+      font-size: .72rem;
+      letter-spacing: .2em;
+      color: var(--sage-dark);
+      margin-bottom: 10px;
+    }
+    .cta-block .cta-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .cta-block .cta-body {
+      font-size: .85rem;
+      line-height: 1.9;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+    }
+    .btn-cta {
+      display: inline-block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--sage-dark), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: .95rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-cta:hover { opacity: .88; }
+
     /* 再挑戦ボタン */
     .btn-retry {
       display: block;
@@ -403,8 +447,7 @@
     今の自分に、どれくらい"あわひ"がありますか？<br>
     7つの質問で、あなたの今をやさしく見つめます。
   </p>
-  <p class="note-small">全7問 · 約2〜3分 · 優劣なし</p>
-  <button class="btn-start" onclick="startQuiz()">診断をはじめる</button>
+<button class="btn-start" onclick="startQuiz()">診断をはじめる</button>
 </div>
 
 <!-- ===== 質問画面 ===== -->
@@ -540,7 +583,9 @@ const TYPES = {
       "心地よかった時間や選択を、言葉にして残しておく",
       "「これ以上増やさない」という選び方も大切にする"
     ],
-    catchphrase: "あなたはもう、あわひを大切にできている人。これからもその間を守ることで、今の心地よさはもっと深く育っていきます。"
+    catchphrase: "あなたはもう、あわひを大切にできている人。これからもその間を守ることで、今の心地よさはもっと深く育っていきます。",
+    ctaTitle: "今の心地よさを、もっと深く育てたいあなたへ",
+    ctaBody: "あわひアカデミーでは、あわひを保ちながら自分らしく生きる方法を、一緒に深めていきます。今の状態をさらに育てるヒントが見つかるかもしれません。"
   },
   sodatechuu: {
     label: "あわひ育て中",
@@ -570,7 +615,9 @@ const TYPES = {
       "自分が少し楽になることを、日常の中で集めてみる",
       "今日はうまくできたことより、心がゆるんだ瞬間を見つける"
     ],
-    catchphrase: "あわひは、特別な時間ではなく、あなたがあなたに戻るための小さな入口。今の気づきが、そのはじまりです。"
+    catchphrase: "あわひは、特別な時間ではなく、あなたがあなたに戻るための小さな入口。今の気づきが、そのはじまりです。",
+    ctaTitle: "その気づきを、ちゃんと育てていきたいあなたへ",
+    ctaBody: "あわひアカデミーは、忙しい毎日の中でも自分に戻れる場所。芽生えはじめた感覚を、一緒にやさしく育てていきませんか。"
   },
   sukuname: {
     label: "あわひ少なめ",
@@ -600,7 +647,9 @@ const TYPES = {
       "1日のどこかに、5分だけでも『何もしない間』を入れる",
       "「今日は何をやるか」より、「今日は何を減らすか」で考える"
     ],
-    catchphrase: "やりたいことを見つける前に、まずはあわひを作ること。余白ができると、あなたの本音は少しずつ戻ってきます。"
+    catchphrase: "やりたいことを見つける前に、まずはあわひを作ること。余白ができると、あなたの本音は少しずつ戻ってきます。",
+    ctaTitle: "まずあわひを作ることから、はじめてみませんか",
+    ctaBody: "あわひアカデミーでは、忙しいママが自分のための余白を取り戻すヒントをお伝えしています。やりたいことより先に、まず『自分に戻る』をはじめましょう。"
   },
   busoku: {
     label: "あわひ不足",
@@ -630,7 +679,9 @@ const TYPES = {
       "ひとりで抱え込まず、頼れるものを探す",
       "やりたいこと探しより先に、呼吸できる余白を取り戻す"
     ],
-    catchphrase: "今のあなたに必要なのは、もっと頑張ることではなく、まずあわひを作ること。余白ができた時、止まっていたものがやさしく動きはじめます。"
+    catchphrase: "今のあなたに必要なのは、もっと頑張ることではなく、まずあわひを作ること。余白ができた時、止まっていたものがやさしく動きはじめます。",
+    ctaTitle: "頑張らなくていい。まず、あわひを取り戻そう",
+    ctaBody: "あわひアカデミーは、追われる毎日から少しずつ抜け出したいママのための場所。新しいことを増やすより先に、まず呼吸できる余白を一緒に作っていきませんか。"
   }
 };
 
@@ -828,6 +879,13 @@ function showResult() {
 
     <p class="section-title">✦ あなたへのメッセージ</p>
     <div class="catchphrase">${t.catchphrase}</div>
+
+    <div class="cta-block">
+      <p class="cta-eyebrow">— あわひアカデミー —</p>
+      <p class="cta-title">${t.ctaTitle}</p>
+      <p class="cta-body">${t.ctaBody}</p>
+      <a class="btn-cta" href="https://utage-system.com/page/AosKTdNK1Yy2" target="_blank" rel="noopener">あわひアカデミーをのぞいてみる</a>
+    </div>
 
     <button class="btn-retry" onclick="startQuiz()">もう一度診断する</button>
   `;
