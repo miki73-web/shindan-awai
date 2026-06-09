@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>あなたのあわひ診断</title>
+  <style>
+    /* ===== リセット・基本 ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:    #faf7f2;
+      --warm:     #f5ede0;
+      --sand:     #e8d9c4;
+      --sage:     #b5c4b1;
+      --sage-dark:#8aab85;
+      --rosemist: #d4a5a5;
+      --text:     #4a3f35;
+      --text-sub: #7a6e65;
+      --accent:   #c08b6e;
+      --white:    #ffffff;
+      --radius:   16px;
+      --shadow:   0 4px 24px rgba(74,63,53,.10);
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* ===== カード共通 ===== */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 560px;
+      padding: 40px 32px;
+      animation: fadeIn .4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== トップ装飾 ===== */
+    .deco {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: .2em;
+      color: var(--sage-dark);
+    }
+    .subtitle {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--text-sub);
+      letter-spacing: .15em;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .lead {
+      font-size: .9rem;
+      line-height: 1.9;
+      color: var(--text-sub);
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .note-small {
+      font-size: .78rem;
+      color: #aaa;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    /* ===== ボタン ===== */
+    .btn-start {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--sage-dark), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-start:hover { opacity: .88; }
+
+    /* ===== プログレス ===== */
+    .progress-wrap {
+      width: 100%;
+      max-width: 560px;
+      margin-bottom: 16px;
+    }
+    .progress-label {
+      font-size: .78rem;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      text-align: right;
+    }
+    .progress-bar-bg {
+      background: var(--sand);
+      border-radius: 50px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sage-dark), var(--accent));
+      border-radius: 50px;
+      transition: width .4s ease;
+    }
+
+    /* ===== 質問カード ===== */
+    .q-number {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      color: var(--sage-dark);
+      margin-bottom: 10px;
+    }
+    .q-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .q-intent {
+      font-size: .75rem;
+      color: #bbb;
+      margin-bottom: 20px;
+    }
+
+    /* ===== 選択肢 ===== */
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 16px 20px;
+      background: var(--cream);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: .92rem;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s;
+    }
+    .option-btn:hover {
+      border-color: var(--sage);
+      background: var(--warm);
+      transform: translateX(4px);
+    }
+    .option-btn.selected {
+      border-color: var(--sage-dark);
+      background: #eef4ec;
+    }
+    .option-key {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      background: var(--sage);
+      color: #fff;
+      font-size: .8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .option-btn.selected .option-key {
+      background: var(--sage-dark);
+    }
+
+    /* ===== ナビ ===== */
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 28px;
+      gap: 12px;
+    }
+    .btn-back {
+      padding: 12px 24px;
+      background: transparent;
+      border: 2px solid var(--sand);
+      border-radius: 50px;
+      color: var(--text-sub);
+      font-size: .9rem;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .btn-back:hover { border-color: var(--sage); }
+    .btn-next {
+      flex: 1;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--sage-dark), var(--accent));
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: opacity .2s;
+      opacity: .4;
+      pointer-events: none;
+    }
+    .btn-next.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ===== 結果カード ===== */
+    .result-badge {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .result-badge span {
+      display: inline-block;
+      padding: 4px 18px;
+      background: var(--warm);
+      border-radius: 50px;
+      font-size: .75rem;
+      color: var(--accent);
+      letter-spacing: .12em;
+    }
+    .result-type {
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.5;
+      margin: 12px 0 20px;
+    }
+    .result-desc {
+      font-size: .9rem;
+      line-height: 2;
+      color: var(--text-sub);
+      margin-bottom: 28px;
+      padding: 20px;
+      background: var(--cream);
+      border-radius: 12px;
+    }
+
+    .section-title {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      color: var(--sage-dark);
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--sand);
+    }
+
+    .list-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .list-items li {
+      font-size: .88rem;
+      line-height: 1.7;
+      padding-left: 20px;
+      position: relative;
+      color: var(--text);
+    }
+    .list-items li::before {
+      content: '·';
+      position: absolute;
+      left: 6px;
+      color: var(--sage-dark);
+      font-size: 1.2rem;
+      line-height: 1.4;
+    }
+
+    .catchphrase {
+      margin: 28px 0 0;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #eef4ec, #faf0ea);
+      border-radius: 12px;
+      border-left: 4px solid var(--sage-dark);
+      font-size: .92rem;
+      font-weight: 700;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    /* スコアバー */
+    .score-area {
+      margin: 28px 0;
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .score-row-label {
+      width: 80px;
+      font-size: .78rem;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+    .score-bar-bg {
+      flex: 1;
+      background: var(--sand);
+      border-radius: 50px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 50px;
+      transition: width .8s ease .2s;
+    }
+    .score-bar-fill.tappuri   { background: #8aab85; }
+    .score-bar-fill.sodatechuu{ background: #b5c4b1; }
+    .score-bar-fill.sukuname  { background: #d4a5a5; }
+    .score-bar-fill.busoku    { background: #c08b6e; }
+
+    .score-num {
+      width: 32px;
+      text-align: right;
+      font-size: .78rem;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+
+    /* 再挑戦ボタン */
+    .btn-retry {
+      display: block;
+      width: 100%;
+      margin-top: 32px;
+      padding: 14px;
+      background: transparent;
+      border: 2px solid var(--sand);
+      border-radius: 50px;
+      color: var(--text-sub);
+      font-size: .9rem;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-retry:hover { border-color: var(--sage); color: var(--text); }
+
+    /* type color accent */
+    .type-tappuri   .result-type { color: #5a8f55; }
+    .type-sodatechuu .result-type { color: #7a9e76; }
+    .type-sukuname  .result-type { color: #b47272; }
+    .type-busoku    .result-type { color: #c08b6e; }
+
+    /* hidden */
+    .hidden { display: none !important; }
+
+    /* footer */
+    footer {
+      margin-top: 32px;
+      font-size: .72rem;
+      color: #ccc;
+      text-align: center;
+    }
+
+    @media (max-width: 400px) {
+      .card { padding: 28px 20px; }
+      h1 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== トップ画面 ===== -->
+<div id="screen-top" class="card">
+  <div class="deco">— あわひ —</div>
+  <p class="subtitle">AWAHI SHINDAN</p>
+  <h1>あなたのあわひ診断</h1>
+  <p class="lead">
+    今の自分に、どれくらい"あわひ"がありますか？<br>
+    7つの質問で、あなたの今をやさしく見つめます。
+  </p>
+  <p class="note-small">全7問 · 約2〜3分 · 優劣なし</p>
+  <button class="btn-start" onclick="startQuiz()">診断をはじめる</button>
+</div>
+
+<!-- ===== 質問画面 ===== -->
+<div id="screen-quiz" class="hidden" style="width:100%;max-width:560px;">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-label">1 / 7</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="prog-bar" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="card" id="q-card">
+    <p class="q-number" id="q-number">Q1</p>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="options-wrap"></div>
+    <div class="nav-row">
+      <button class="btn-back" id="btn-back" onclick="goBack()">← もどる</button>
+      <button class="btn-next" id="btn-next" onclick="goNext()">次へ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 結果画面 ===== -->
+<div id="screen-result" class="hidden card">
+  <!-- JS で内容を生成 -->
+</div>
+
+<footer>© あわひ診断</footer>
+
+<script>
+/* ============================================================
+   データ定義
+============================================================ */
+const QUESTIONS = [
+  {
+    id: "Q1", weight: 1,
+    text: "予定に30分あいたら？",
+    options: [
+      { key:"A", label:"お茶飲む、ひと息つく",         type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"やりたかったことを少しやる",   type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"たまった家事や連絡を片づける", type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"すぐ別の予定を入れる",         type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q2", weight: 1,
+    text: "朝いちばんの気分は？",
+    options: [
+      { key:"A", label:"今日も自分のペースでいけそう",       type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"やることはあるけど整えればいけそう", type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"今日も回すだけでいっぱいかも",       type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"起きた瞬間から追われてる",           type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q3", weight: 1,
+    text: "ひとり時間ができたら？",
+    options: [
+      { key:"A", label:"その日の気分で過ごせる",                 type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"ノートやお茶で整えたくなる",             type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"気になる用事を先に終わらせる",           type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"何したいか分からずスマホで終わる",       type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q4", weight: 1,
+    text: "頼まれごとが来たら？",
+    options: [
+      { key:"A", label:"今の自分に合うか見て決める",             type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"いったん考える時間をとる",               type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"断りにくくて引き受けがち",               type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"反射で受けてあとで苦しくなる",           type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q5", weight: 2,
+    text: "やりたいことは今どう？",
+    options: [
+      { key:"A", label:"ちゃんとできてる",       type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"少しずつ見えてきてる",   type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"あるけど後回し",         type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"何がしたいか分からない", type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q6", weight: 2,
+    text: "疲れたサインに気づくのは？",
+    options: [
+      { key:"A", label:"早めに気づいて休める",           type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"気づいたら少し整えられる",       type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"だいぶたってから気づく",         type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"限界になってから気づく",         type:"busoku",     space:0, connection:0 }
+    ]
+  },
+  {
+    id: "Q7", weight: 1,
+    text: "夜、寝る前の気持ちは？",
+    options: [
+      { key:"A", label:"今日も大事なものを大事にできた",             type:"tappuri",    space:2, connection:2 },
+      { key:"B", label:"バタバタしたけど少しは戻れた",               type:"sodatechuu", space:1, connection:2 },
+      { key:"C", label:"やることは終えたけど自分は後回し",           type:"sukuname",   space:1, connection:1 },
+      { key:"D", label:"何をしたか覚えてないくらいいっぱい",         type:"busoku",     space:0, connection:0 }
+    ]
+  }
+];
+
+const TYPES = {
+  tappuri: {
+    label: "あわひたっぷり",
+    space: 2, connection: 2,
+    desc: `今のあなたは、毎日の中にちゃんと"あわひ"を持てている人。\nやることに追われるだけではなく、自分の気持ちや大切にしたいものにも、やさしく目を向けられています。\nがんばりすぎなくても、心地よく進める流れが少しずつできている状態です。`,
+    features: [
+      "予定があっても、自分に戻る時間を持てている",
+      "「やらなきゃ」だけでなく、「こうしたい」も感じられている",
+      "疲れや違和感に、比較的早めに気づける",
+      "忙しい中でも、自分に合うペースを保ちやすい"
+    ],
+    strengths: [
+      "無理を重ねすぎずに前に進める",
+      "大切なものを、大切にする選び方ができる",
+      "心に余白があるぶん、人にもやさしくなれる",
+      "自分を整えながら、やりたいことも育てていける"
+    ],
+    stumbles: [
+      "調子がいいと、つい予定を入れすぎてしまうことがある",
+      "できている時ほど、「整えること」を後回しにしやすい",
+      "周りに合わせるうちに、自分の余白が少しずつ削られることがある"
+    ],
+    actions: [
+      "今の自分を整えている習慣を、そのまま大事にする",
+      "余白がある日ほど、あえて詰め込みすぎない",
+      "心地よかった時間や選択を、言葉にして残しておく",
+      "「これ以上増やさない」という選び方も大切にする"
+    ],
+    catchphrase: "あなたはもう、あわひを大切にできている人。これからもその間を守ることで、今の心地よさはもっと深く育っていきます。"
+  },
+  sodatechuu: {
+    label: "あわひ育て中",
+    space: 1, connection: 2,
+    desc: `今のあなたは、少しずつ自分の"あわひ"を取り戻しはじめている人。\nまだ毎日がゆったりしているわけではないけれど、\n「このまま頑張るだけじゃ苦しいかも」\n「もう少し自分を大切にしたい」\nそんな気づきが、やさしく芽生えてきている状態です。`,
+    features: [
+      "忙しさの中でも、立ち止まりたい気持ちがある",
+      "自分を整える時間の大切さを感じ始めている",
+      "やりたいことや心地よさが、少しずつ見えてきている",
+      "前のようにただ頑張るだけではいたくないと思っている"
+    ],
+    strengths: [
+      "自分の変化に気づける",
+      "小さな違和感を、そのままにしすぎない",
+      "これから整っていく力をちゃんと持っている",
+      "自分を大切にする感覚を、これから育てていける"
+    ],
+    stumbles: [
+      "少し整っても、忙しさに戻るとすぐ後回しになりやすい",
+      "「ちゃんと変わらなきゃ」と思うと苦しくなりやすい",
+      "変化が小さいと、前に進んでいないように感じやすい",
+      "周りのペースに引っぱられて、自分の感覚を見失いやすい"
+    ],
+    actions: [
+      "まずは短くてもいいから、ひと息つく時間をつくる",
+      "「増やす」より先に、「ひとつ減らす」を意識する",
+      "自分が少し楽になることを、日常の中で集めてみる",
+      "今日はうまくできたことより、心がゆるんだ瞬間を見つける"
+    ],
+    catchphrase: "あわひは、特別な時間ではなく、あなたがあなたに戻るための小さな入口。今の気づきが、そのはじまりです。"
+  },
+  sukuname: {
+    label: "あわひ少なめ",
+    space: 1, connection: 1,
+    desc: `今のあなたは、やることや気にかけることが多くて、\n自分のための"あわひ"が少し後ろに回りやすい人。\n毎日をちゃんと回しているぶん、気づかないうちに、自分の気持ちや願いが後回しになっているかもしれません。\nそれは、だめだからではなく、ずっと大切なものを支えてきたからです。`,
+    features: [
+      "目の前のことを回すのでいっぱいになりやすい",
+      "自分のことより、家族や仕事を優先しやすい",
+      "やりたいことはあるけれど、後回しになりがち",
+      "休んでいても、どこか気が休まらないことがある"
+    ],
+    strengths: [
+      "責任感がある",
+      "日々をきちんと支える力がある",
+      "周りのために動けるやさしさがある",
+      "必要なことを投げ出さずに続けられる"
+    ],
+    stumbles: [
+      "「自分のことはあとで」が当たり前になりやすい",
+      "疲れていても、まだ大丈夫と思ってしまいやすい",
+      "やりたいことを考える前に、1日が終わってしまいやすい",
+      "余白がないまま頑張り続けて、心が固くなりやすい"
+    ],
+    actions: [
+      "まずは予定を足すより、減らせるものを見直す",
+      "ひとりで全部持たず、任せられることは少し手放す",
+      "1日のどこかに、5分だけでも『何もしない間』を入れる",
+      "「今日は何をやるか」より、「今日は何を減らすか」で考える"
+    ],
+    catchphrase: "やりたいことを見つける前に、まずはあわひを作ること。余白ができると、あなたの本音は少しずつ戻ってきます。"
+  },
+  busoku: {
+    label: "あわひ不足",
+    space: 0, connection: 0,
+    desc: `今のあなたは、毎日を支えることに精いっぱいで、\n自分のための"あわひ"がほとんど持てていない状態かもしれません。\nやらなきゃいけないことが先に立ち、気づけば自分の気持ちが後ろのほうに置かれている。\nでもそれは、あなたが弱いからではなく、ここまでたくさんのものを抱えてきたからです。`,
+    features: [
+      "起きた瞬間から追われている感じがある",
+      "やることをこなすだけで、1日が終わりやすい",
+      "何がしたいのか、自分でも分かりにくくなっている",
+      "限界近くまで頑張ってから、やっと疲れに気づくことがある"
+    ],
+    strengths: [
+      "ここまで踏んばってきた力がある",
+      "投げ出さずに、日々を守ってきた",
+      "見えないところでも、たくさん支えている",
+      "本当はとても大切なものを守ろうとしている"
+    ],
+    stumbles: [
+      "心にも予定にも、考えるすき間がない",
+      "「休むこと」に罪悪感を持ちやすい",
+      "自分の望みを感じる前に、目の前のことが押し寄せる",
+      "頑張ることが当たり前になり、助けを借りにくくなる"
+    ],
+    actions: [
+      "新しく頑張ることを増やさない",
+      "まずは休む、ゆるめる、減らすを優先する",
+      "ひとりで抱え込まず、頼れるものを探す",
+      "やりたいこと探しより先に、呼吸できる余白を取り戻す"
+    ],
+    catchphrase: "今のあなたに必要なのは、もっと頑張ることではなく、まずあわひを作ること。余白ができた時、止まっていたものがやさしく動きはじめます。"
+  }
+};
+
+const TYPE_LABELS = {
+  tappuri: "あわひたっぷり",
+  sodatechuu: "あわひ育て中",
+  sukuname: "あわひ少なめ",
+  busoku: "あわひ不足"
+};
+
+/* ============================================================
+   状態
+============================================================ */
+let currentQ = 0;
+let answers = []; // index → {type, space, connection, weight}
+
+/* ============================================================
+   画面切り替え
+============================================================ */
+function show(id) {
+  ['screen-top','screen-quiz','screen-result'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+/* ============================================================
+   スタート
+============================================================ */
+function startQuiz() {
+  currentQ = 0;
+  answers = [];
+  show('screen-quiz');
+  renderQuestion();
+}
+
+/* ============================================================
+   質問描画
+============================================================ */
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+
+  // プログレス
+  document.getElementById('prog-label').textContent = `${currentQ + 1} / ${total}`;
+  document.getElementById('prog-bar').style.width = `${((currentQ + 1) / total) * 100}%`;
+
+  // 番号・テキスト
+  document.getElementById('q-number').textContent = `Q${currentQ + 1}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  // 選択肢
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    if (answers[currentQ] && answers[currentQ].key === opt.key) {
+      btn.classList.add('selected');
+    }
+    btn.innerHTML = `<span class="option-key">${opt.key}</span><span>${opt.label}</span>`;
+    btn.addEventListener('click', () => selectOption(opt, btn));
+    wrap.appendChild(btn);
+  });
+
+  // 戻るボタン
+  document.getElementById('btn-back').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+
+  // 次へボタン
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = currentQ === total - 1 ? '結果を見る ✦' : '次へ →';
+  btnNext.classList.toggle('active', !!answers[currentQ]);
+
+  // カードアニメ
+  const card = document.getElementById('q-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = 'fadeIn .35s ease'; });
+}
+
+/* ============================================================
+   選択
+============================================================ */
+function selectOption(opt, btn) {
+  const q = QUESTIONS[currentQ];
+  answers[currentQ] = { key: opt.key, type: opt.type, space: opt.space, connection: opt.connection, weight: q.weight };
+
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('btn-next').classList.add('active');
+
+  // 選択後、少し間をおいて自動で次へ進む
+  setTimeout(() => { goNext(); }, 400);
+}
+
+/* ============================================================
+   ナビ
+============================================================ */
+function goNext() {
+  if (!answers[currentQ]) return;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function goBack() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+  else { show('screen-top'); }
+}
+
+/* ============================================================
+   判定ロジック
+============================================================ */
+function calcResult() {
+  const typeScore = { tappuri: 0, sodatechuu: 0, sukuname: 0, busoku: 0 };
+  let spaceScore = 0, connectionScore = 0;
+  const totalWeight = 9;
+
+  answers.forEach(a => {
+    typeScore[a.type] += a.weight;
+    spaceScore += a.space * a.weight;
+    connectionScore += a.connection * a.weight;
+  });
+
+  const maxScore = Math.max(...Object.values(typeScore));
+  const candidates = Object.keys(typeScore).filter(k => typeScore[k] === maxScore);
+
+  let result;
+  if (candidates.length === 1) {
+    result = candidates[0];
+  } else {
+    const avgSpace = spaceScore / totalWeight;
+    const avgConn  = connectionScore / totalWeight;
+    const protos = { tappuri:{space:2,connection:2}, sodatechuu:{space:1,connection:2}, sukuname:{space:1,connection:1}, busoku:{space:0,connection:0} };
+
+    result = candidates.sort((a, b) => {
+      const da = Math.abs(avgSpace - protos[a].space) + Math.abs(avgConn - protos[a].connection);
+      const db = Math.abs(avgSpace - protos[b].space) + Math.abs(avgConn - protos[b].connection);
+      return da - db;
+    })[0];
+
+    // それでも同点ならQ5→Q6→Q1優先
+    if (result === undefined) {
+      for (const qi of [4, 5, 0]) {
+        if (answers[qi] && candidates.includes(answers[qi].type)) {
+          result = answers[qi].type;
+          break;
+        }
+      }
+    }
+  }
+
+  return { result, typeScore, totalWeight };
+}
+
+/* ============================================================
+   結果表示
+============================================================ */
+function showResult() {
+  const { result, typeScore, totalWeight } = calcResult();
+  const t = TYPES[result];
+
+  const makeList = (items) =>
+    `<ul class="list-items">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+
+  const bars = ['tappuri','sodatechuu','sukuname','busoku'].map(k => `
+    <div class="score-row">
+      <span class="score-row-label">${TYPE_LABELS[k]}</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill ${k}" style="width:0%" data-val="${Math.round(typeScore[k]/totalWeight*100)}"></div>
+      </div>
+      <span class="score-num">${typeScore[k]}pt</span>
+    </div>
+  `).join('');
+
+  const el = document.getElementById('screen-result');
+  el.className = `card type-${result}`;
+  el.innerHTML = `
+    <div class="result-badge"><span>診断結果</span></div>
+    <p class="result-type">あなたは「${t.label}」タイプ</p>
+    <div class="result-desc">${t.desc.replace(/\n/g,'<br>')}</div>
+
+    <p class="section-title">✦ 今のあなたの特徴</p>
+    ${makeList(t.features)}
+
+    <p class="section-title">✦ あなたの強み</p>
+    ${makeList(t.strengths)}
+
+    <p class="section-title">✦ つまずきやすい点</p>
+    ${makeList(t.stumbles)}
+
+    <p class="section-title">✦ おすすめ行動</p>
+    ${makeList(t.actions)}
+
+    <p class="section-title">✦ あなたへのメッセージ</p>
+    <div class="catchphrase">${t.catchphrase}</div>
+
+    <button class="btn-retry" onclick="startQuiz()">もう一度診断する</button>
+  `;
+
+  show('screen-result');
+}
+</script>
+</body>
+</html>
